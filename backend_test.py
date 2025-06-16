@@ -17,6 +17,8 @@ class TwoemAPITester:
         self.reset_request_id = None
         self.reset_code = None
         self.download_id = None
+        self.notification_id = None
+        self.resource_id = None
 
     def run_test(self, name, method, endpoint, expected_status, data=None, files=None, token=None, is_admin=False):
         """Run a single API test"""
