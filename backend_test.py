@@ -374,6 +374,331 @@ class TwoemAPITester:
                 )
         
         return True
+        
+    def test_notifications_management(self):
+        """Test notifications management functionality"""
+        print("\n===== Testing Notifications Management =====")
+        
+        # Step 1: Create a notification without attachment
+        notification_data = {
+            'title': 'Test Notification',
+            'content': 'This is a test notification content',
+            'target_audience': 'all',
+            'priority': 'normal'
+        }
+        
+        # Convert to form data
+        form_data = {
+            'title': (None, notification_data['title']),
+            'content': (None, notification_data['content']),
+            'target_audience': (None, notification_data['target_audience']),
+            'priority': (None, notification_data['priority'])
+        }
+        
+        success, response = self.run_test(
+            "Create Notification",
+            "POST",
+            "admin/notifications",
+            200,
+            files=form_data,
+            is_admin=True
+        )
+        
+        if not success:
+            return False
+            
+        # Step 2: Get all notifications as admin
+        success, response = self.run_test(
+            "Get All Notifications (Admin)",
+            "GET",
+            "admin/notifications",
+            200,
+            is_admin=True
+        )
+        
+        if not success or not response:
+            return False
+            
+        # Find our notification
+        notification = None
+        for notif in response:
+            if notif['title'] == 'Test Notification':
+                notification = notif
+                self.notification_id = notif['id']
+                break
+                
+        if not notification:
+            print("❌ Created notification not found in notifications list")
+            return False
+            
+        # Step 3: Create a notification with attachment
+        test_file_path = "test_attachment.txt"
+        with open(test_file_path, "w") as f:
+            f.write("This is a test attachment for notification")
+        
+        form_data_with_attachment = {
+            'title': (None, 'Test Notification with Attachment'),
+            'content': (None, 'This is a test notification with attachment'),
+            'target_audience': (None, 'all'),
+            'priority': (None, 'high'),
+            'file': open(test_file_path, 'rb')
+        }
+        
+        success, response = self.run_test(
+            "Create Notification with Attachment",
+            "POST",
+            "admin/notifications",
+            200,
+            files=form_data_with_attachment,
+            is_admin=True
+        )
+        
+        os.remove(test_file_path)
+        
+        if not success:
+            return False
+            
+        # Step 4: Get notifications as student
+        # First create a test student
+        if not self.test_student:
+            self.test_create_student()
+            
+        # Login as student
+        if self.test_student:
+            success, response = self.run_test(
+                "Student Login",
+                "POST",
+                "auth/login",
+                200,
+                data={"username": self.test_student['username'], "password": "Test@123"}
+            )
+            
+            if success and 'access_token' in response:
+                self.token = response['access_token']
+                
+                # Get notifications as student
+                success, response = self.run_test(
+                    "Get Student Notifications",
+                    "GET",
+                    "student/notifications",
+                    200
+                )
+                
+                # Verify notifications are visible to student
+                if success:
+                    notifications_found = 0
+                    for notif in response:
+                        if notif['title'] in ['Test Notification', 'Test Notification with Attachment']:
+                            notifications_found += 1
+                    
+                    if notifications_found < 2:
+                        print(f"❌ Not all test notifications visible to student (found {notifications_found}/2)")
+                
+                # Switch back to admin token
+                self.token = None
+        
+        # Step 5: Delete the test notifications
+        success, response = self.run_test(
+            "Get All Notifications for Cleanup",
+            "GET",
+            "admin/notifications",
+            200,
+            is_admin=True
+        )
+        
+        if success:
+            for notif in response:
+                if notif['title'] in ['Test Notification', 'Test Notification with Attachment']:
+                    self.run_test(
+                        f"Delete Test Notification: {notif['title']}",
+                        "DELETE",
+                        f"admin/notifications/{notif['id']}",
+                        200,
+                        is_admin=True
+                    )
+        
+        return True
+        
+    def test_resources_management(self):
+        """Test resources management functionality"""
+        print("\n===== Testing Resources Management =====")
+        
+        # Step 1: Upload a resource
+        test_file_path = "test_resource.pdf"
+        with open(test_file_path, "w") as f:
+            f.write("%PDF-1.5\nThis is a fake PDF file for testing")
+        
+        form_data = {
+            'title': (None, 'Test Resource'),
+            'description': (None, 'This is a test resource'),
+            'subject': (None, 'Computer Introduction'),
+            'file': open(test_file_path, 'rb')
+        }
+        
+        success, response = self.run_test(
+            "Upload Resource",
+            "POST",
+            "admin/resources",
+            200,
+            files=form_data,
+            is_admin=True
+        )
+        
+        os.remove(test_file_path)
+        
+        if not success:
+            return False
+            
+        # Step 2: Get all resources as admin
+        success, response = self.run_test(
+            "Get All Resources (Admin)",
+            "GET",
+            "admin/resources",
+            200,
+            is_admin=True
+        )
+        
+        if not success or not response:
+            return False
+            
+        # Find our resource
+        resource = None
+        for res in response:
+            if res['title'] == 'Test Resource':
+                resource = res
+                self.resource_id = res['id']
+                break
+                
+        if not resource:
+            print("❌ Uploaded resource not found in resources list")
+            return False
+            
+        # Step 3: Get resources as student
+        # First create a test student if not already created
+        if not self.test_student:
+            self.test_create_student()
+            
+        # Login as student
+        if self.test_student:
+            success, response = self.run_test(
+                "Student Login",
+                "POST",
+                "auth/login",
+                200,
+                data={"username": self.test_student['username'], "password": "Test@123"}
+            )
+            
+            if success and 'access_token' in response:
+                self.token = response['access_token']
+                
+                # Get resources as student
+                success, response = self.run_test(
+                    "Get Student Resources",
+                    "GET",
+                    "student/resources",
+                    200
+                )
+                
+                # Verify resource is visible to student
+                if success:
+                    resource_found = False
+                    for res in response:
+                        if res['title'] == 'Test Resource':
+                            resource_found = True
+                            break
+                    
+                    if not resource_found:
+                        print("❌ Test resource not visible to student")
+                
+                # Switch back to admin token
+                self.token = None
+        
+        # Step 4: Delete the test resource
+        success, _ = self.run_test(
+            "Delete Test Resource",
+            "DELETE",
+            f"admin/resources/{self.resource_id}",
+            200,
+            is_admin=True
+        )
+        
+        return success
+        
+    def test_wifi_management(self):
+        """Test WiFi management functionality"""
+        print("\n===== Testing WiFi Management =====")
+        
+        # Step 1: Update WiFi credentials
+        wifi_data = {
+            "network_name": "TWOEM_TEST_WIFI",
+            "password": "TestWiFi@123",
+            "connection_guide": "This is a test connection guide for the WiFi network."
+        }
+        
+        success, response = self.run_test(
+            "Update WiFi Credentials",
+            "POST",
+            "admin/wifi",
+            200,
+            data=wifi_data,
+            is_admin=True
+        )
+        
+        if not success:
+            return False
+            
+        # Step 2: Get WiFi credentials as admin
+        success, response = self.run_test(
+            "Get WiFi Credentials (Admin)",
+            "GET",
+            "admin/wifi",
+            200,
+            is_admin=True
+        )
+        
+        if not success:
+            return False
+            
+        # Verify the credentials match what we set
+        if response['network_name'] != wifi_data['network_name'] or response['password'] != wifi_data['password']:
+            print("❌ WiFi credentials don't match what was set")
+            return False
+            
+        # Step 3: Get WiFi credentials as student
+        # First create a test student if not already created
+        if not self.test_student:
+            self.test_create_student()
+            
+        # Login as student
+        if self.test_student:
+            success, response = self.run_test(
+                "Student Login",
+                "POST",
+                "auth/login",
+                200,
+                data={"username": self.test_student['username'], "password": "Test@123"}
+            )
+            
+            if success and 'access_token' in response:
+                self.token = response['access_token']
+                
+                # Get WiFi credentials as student
+                success, response = self.run_test(
+                    "Get Student WiFi Credentials",
+                    "GET",
+                    "student/wifi",
+                    200
+                )
+                
+                # Verify credentials are visible to student
+                if success:
+                    if response['network_name'] != wifi_data['network_name'] or response['password'] != wifi_data['password']:
+                        print("❌ WiFi credentials don't match for student view")
+                
+                # Switch back to admin token
+                self.token = None
+        
+        return True
 
 def test_image_availability(base_url):
     """Test if all required images are available and accessible"""
