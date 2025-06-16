@@ -1,0 +1,35 @@
+services:
+  # Backend Service
+  - type: web
+    name: twoem-backend
+    env: python
+    buildCommand: "cd backend && pip install -r requirements.txt"
+    startCommand: "cd backend && uvicorn server:app --host 0.0.0.0 --port $PORT"
+    plan: starter
+    envVars:
+      - key: MONGO_URL
+        sync: false
+      - key: DB_NAME
+        value: twoem_production
+      - key: PYTHON_VERSION
+        value: "3.11"
+
+  # Frontend Service  
+  - type: web
+    name: twoem-frontend
+    env: node
+    buildCommand: "cd frontend && yarn install && yarn build"
+    startCommand: "cd frontend && yarn global add serve && serve -s build -p $PORT"
+    plan: starter
+    envVars:
+      - key: REACT_APP_BACKEND_URL
+        fromService:
+          type: web
+          name: twoem-backend
+          property: host
+      - key: NODE_VERSION
+        value: "18"
+
+databases:
+  - name: twoem-mongodb
+    plan: starter
