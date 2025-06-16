@@ -192,6 +192,87 @@ class PasswordResetResponse(BaseModel):
     status: str
     admin_response: Optional[str] = None
 
+# =============================
+# NEW MODELS FOR NOTIFICATIONS AND RESOURCES
+# =============================
+
+class Notification(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    title: str
+    content: str  # Rich text content
+    attachment_filename: Optional[str] = None
+    attachment_data: Optional[str] = None  # base64 encoded
+    target_audience: str = "all"  # "all", "specific", "student_id"
+    target_student_ids: List[str] = []  # if target_audience is "specific"
+    created_by: str  # admin user id
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    is_active: bool = True
+    priority: str = "normal"  # "low", "normal", "high", "urgent"
+
+class NotificationCreate(BaseModel):
+    title: str
+    content: str
+    target_audience: str = "all"
+    target_student_ids: List[str] = []
+    priority: str = "normal"
+
+class NotificationResponse(BaseModel):
+    id: str
+    title: str
+    content: str
+    attachment_filename: Optional[str] = None
+    has_attachment: bool = False
+    target_audience: str
+    target_student_ids: List[str]
+    created_by: str
+    created_at: datetime
+    is_active: bool
+    priority: str
+
+class StudentResource(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    title: str
+    description: Optional[str] = None
+    subject: str  # Subject category
+    filename: str
+    file_data: str  # base64 encoded PDF
+    uploaded_at: datetime = Field(default_factory=datetime.utcnow)
+    uploaded_by: str  # admin user id
+    is_active: bool = True
+
+class StudentResourceCreate(BaseModel):
+    title: str
+    description: Optional[str] = None
+    subject: str
+
+class StudentResourceResponse(BaseModel):
+    id: str
+    title: str
+    description: Optional[str] = None
+    subject: str
+    filename: str
+    uploaded_at: datetime
+    is_active: bool
+
+class WiFiCredentials(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    network_name: str
+    password: str
+    connection_guide: str  # Rich text with connection instructions
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_by: str  # admin user id
+
+class WiFiCredentialsUpdate(BaseModel):
+    network_name: str
+    password: str
+    connection_guide: str
+
+class WiFiCredentialsResponse(BaseModel):
+    network_name: str
+    password: str
+    connection_guide: str
+    updated_at: datetime
+
 class Student(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     user_id: str  # Reference to User
@@ -667,6 +748,139 @@ async def delete_download_file(download_id: str, admin_user: User = Depends(get_
     return {"message": "Download file deleted successfully"}
 
 # =============================
+# NEW ADMIN ROUTES FOR NOTIFICATIONS AND RESOURCES
+# =============================
+
+# Notifications Management
+@api_router.post("/admin/notifications")
+async def create_notification(
+    title: str = Form(...),
+    content: str = Form(...),
+    target_audience: str = Form("all"),
+    target_student_ids: str = Form(""),
+    priority: str = Form("normal"),
+    file: UploadFile = File(None),
+    admin_user: User = Depends(get_admin_user)
+):
+    # Parse target_student_ids
+    target_ids = [id.strip() for id in target_student_ids.split(",") if id.strip()] if target_student_ids else []
+    
+    # Handle file attachment
+    attachment_filename = None
+    attachment_data = None
+    if file:
+        file_content = await file.read()
+        attachment_data = base64.b64encode(file_content).decode('utf-8')
+        attachment_filename = file.filename
+    
+    notification = Notification(
+        title=title,
+        content=content,
+        attachment_filename=attachment_filename,
+        attachment_data=attachment_data,
+        target_audience=target_audience,
+        target_student_ids=target_ids,
+        priority=priority,
+        created_by=admin_user.id
+    )
+    
+    await db.notifications.insert_one(notification.dict())
+    return {"message": "Notification created successfully", "id": notification.id}
+
+@api_router.get("/admin/notifications", response_model=List[NotificationResponse])
+async def get_all_notifications_admin(admin_user: User = Depends(get_admin_user)):
+    notifications = await db.notifications.find({"is_active": True}).to_list(1000)
+    return [
+        NotificationResponse(
+            **notif,
+            has_attachment=notif["attachment_filename"] is not None
+        ) for notif in notifications
+    ]
+
+@api_router.delete("/admin/notifications/{notification_id}")
+async def delete_notification(notification_id: str, admin_user: User = Depends(get_admin_user)):
+    await db.notifications.update_one(
+        {"id": notification_id},
+        {"$set": {"is_active": False}}
+    )
+    return {"message": "Notification deleted successfully"}
+
+# Student Resources Management
+@api_router.post("/admin/resources")
+async def upload_student_resource(
+    title: str = Form(...),
+    description: str = Form(None),
+    subject: str = Form(...),
+    file: UploadFile = File(...),
+    admin_user: User = Depends(get_admin_user)
+):
+    # Validate file is PDF
+    if not file.filename.lower().endswith('.pdf'):
+        raise HTTPException(status_code=400, detail="Only PDF files are allowed for resources")
+    
+    # Read file content and encode to base64
+    file_content = await file.read()
+    file_data = base64.b64encode(file_content).decode('utf-8')
+    
+    resource = StudentResource(
+        title=title,
+        description=description,
+        subject=subject,
+        filename=file.filename,
+        file_data=file_data,
+        uploaded_by=admin_user.id
+    )
+    
+    await db.student_resources.insert_one(resource.dict())
+    return {"message": "Resource uploaded successfully", "id": resource.id}
+
+@api_router.get("/admin/resources", response_model=List[StudentResourceResponse])
+async def get_all_resources_admin(admin_user: User = Depends(get_admin_user)):
+    resources = await db.student_resources.find({"is_active": True}).to_list(1000)
+    return [StudentResourceResponse(**resource) for resource in resources]
+
+@api_router.delete("/admin/resources/{resource_id}")
+async def delete_student_resource(resource_id: str, admin_user: User = Depends(get_admin_user)):
+    await db.student_resources.update_one(
+        {"id": resource_id},
+        {"$set": {"is_active": False}}
+    )
+    return {"message": "Resource deleted successfully"}
+
+# WiFi Credentials Management
+@api_router.post("/admin/wifi")
+async def update_wifi_credentials(
+    wifi_data: WiFiCredentialsUpdate,
+    admin_user: User = Depends(get_admin_user)
+):
+    # Check if WiFi credentials exist
+    existing = await db.wifi_credentials.find_one({})
+    
+    wifi_creds = WiFiCredentials(
+        network_name=wifi_data.network_name,
+        password=wifi_data.password,
+        connection_guide=wifi_data.connection_guide,
+        updated_by=admin_user.id
+    )
+    
+    if existing:
+        await db.wifi_credentials.update_one(
+            {"id": existing["id"]},
+            {"$set": wifi_creds.dict()}
+        )
+    else:
+        await db.wifi_credentials.insert_one(wifi_creds.dict())
+    
+    return {"message": "WiFi credentials updated successfully"}
+
+@api_router.get("/admin/wifi", response_model=WiFiCredentialsResponse)
+async def get_wifi_credentials_admin(admin_user: User = Depends(get_admin_user)):
+    wifi = await db.wifi_credentials.find_one({})
+    if not wifi:
+        raise HTTPException(status_code=404, detail="WiFi credentials not found")
+    return WiFiCredentialsResponse(**wifi)
+
+# =============================
 # PUBLIC DOWNLOADS ROUTES  
 # =============================
 
@@ -716,9 +930,9 @@ async def download_private_file(download_id: str, current_user: User = Depends(g
     if not download:
         raise HTTPException(status_code=404, detail="Download not found")
     
-    # Check if user has access (students and admins can access private files)
-    if current_user.role not in ["admin", "student"]:
-        raise HTTPException(status_code=403, detail="Access denied")
+    # Only admins can download private files
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required for private files")
     
     # Increment download count
     await db.downloads.update_one(
@@ -804,6 +1018,121 @@ async def download_certificate(current_user: User = Depends(get_current_user)):
         filename=student_obj.certificate.filename,
         media_type="application/pdf"
     )
+
+# =============================
+# NEW STUDENT ROUTES FOR RESOURCES
+# =============================
+
+@api_router.get("/student/notifications", response_model=List[NotificationResponse])
+async def get_student_notifications(current_user: User = Depends(get_current_user)):
+    if current_user.role != "student":
+        raise HTTPException(status_code=403, detail="Student access required")
+    
+    # Get student profile to get student ID
+    student = await db.students.find_one({"user_id": current_user.id})
+    if not student:
+        raise HTTPException(status_code=404, detail="Student profile not found")
+    
+    # Get notifications for this student
+    notifications = await db.notifications.find({
+        "is_active": True,
+        "$or": [
+            {"target_audience": "all"},
+            {"target_audience": "specific", "target_student_ids": {"$in": [student["id"]]}}
+        ]
+    }).to_list(1000)
+    
+    return [
+        NotificationResponse(
+            **notif,
+            has_attachment=notif["attachment_filename"] is not None
+        ) for notif in notifications
+    ]
+
+@api_router.get("/student/notifications/{notification_id}/attachment")
+async def download_notification_attachment(notification_id: str, current_user: User = Depends(get_current_user)):
+    if current_user.role != "student":
+        raise HTTPException(status_code=403, detail="Student access required")
+    
+    notification = await db.notifications.find_one({"id": notification_id, "is_active": True})
+    if not notification:
+        raise HTTPException(status_code=404, detail="Notification not found")
+    
+    if not notification["attachment_data"]:
+        raise HTTPException(status_code=404, detail="No attachment found")
+    
+    # Get student profile to check access
+    student = await db.students.find_one({"user_id": current_user.id})
+    if not student:
+        raise HTTPException(status_code=404, detail="Student profile not found")
+    
+    # Check if student has access to this notification
+    if notification["target_audience"] == "specific" and student["id"] not in notification["target_student_ids"]:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    # Decode base64 file data
+    file_data = base64.b64decode(notification["attachment_data"])
+    
+    # Create a temporary file
+    temp_file = DOWNLOADS_DIR / f"notification_attachment_{notification_id}_{notification['attachment_filename']}"
+    with open(temp_file, "wb") as f:
+        f.write(file_data)
+    
+    return FileResponse(
+        path=temp_file,
+        filename=notification["attachment_filename"],
+        media_type="application/octet-stream"
+    )
+
+@api_router.get("/student/resources", response_model=List[StudentResourceResponse])
+async def get_student_resources(current_user: User = Depends(get_current_user)):
+    if current_user.role != "student":
+        raise HTTPException(status_code=403, detail="Student access required")
+    
+    resources = await db.student_resources.find({"is_active": True}).to_list(1000)
+    return [StudentResourceResponse(**resource) for resource in resources]
+
+@api_router.get("/student/resources/{resource_id}/download")
+async def download_student_resource(resource_id: str, current_user: User = Depends(get_current_user)):
+    if current_user.role != "student":
+        raise HTTPException(status_code=403, detail="Student access required")
+    
+    resource = await db.student_resources.find_one({"id": resource_id, "is_active": True})
+    if not resource:
+        raise HTTPException(status_code=404, detail="Resource not found")
+    
+    # Decode base64 file data
+    file_data = base64.b64decode(resource["file_data"])
+    
+    # Create a temporary file
+    temp_file = DOWNLOADS_DIR / f"resource_{resource_id}_{resource['filename']}"
+    with open(temp_file, "wb") as f:
+        f.write(file_data)
+    
+    return FileResponse(
+        path=temp_file,
+        filename=resource["filename"],
+        media_type="application/pdf"
+    )
+
+@api_router.get("/student/wifi", response_model=WiFiCredentialsResponse)
+async def get_wifi_credentials_student(current_user: User = Depends(get_current_user)):
+    if current_user.role != "student":
+        raise HTTPException(status_code=403, detail="Student access required")
+    
+    wifi = await db.wifi_credentials.find_one({})
+    if not wifi:
+        raise HTTPException(status_code=404, detail="WiFi credentials not found")
+    return WiFiCredentialsResponse(**wifi)
+
+@api_router.get("/student/downloads", response_model=List[DownloadFileResponse])
+async def get_student_downloads(current_user: User = Depends(get_current_user)):
+    if current_user.role != "student":
+        raise HTTPException(status_code=403, detail="Student access required")
+    
+    # Get all downloads (both public and private, but students can only download public ones)
+    downloads = await db.downloads.find({"is_active": True}).to_list(1000)
+    return [DownloadFileResponse(**download) for download in downloads]
 
 # =============================
 # PUBLIC ROUTES
