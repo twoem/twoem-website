@@ -738,7 +738,7 @@ def test_image_availability(base_url):
 
 def main():
     # Get the backend URL from environment variable
-    backend_url = "https://bd51faed-b485-499b-bbbb-3832b17acc69.preview.emergentagent.com"
+    backend_url = os.environ.get("REACT_APP_BACKEND_URL", "https://9afbb8f4-5e5c-4db1-b789-e760ef2573e3.preview.emergentagent.com")
     
     print(f"Testing TWOEM Online Productions API at: {backend_url}")
     tester = TwoemAPITester(backend_url)
@@ -756,13 +756,21 @@ def main():
         print("❌ Student creation failed")
     else:
         tester.test_get_students()
-        tester.test_delete_student()
     
     # Test password reset flow
     tester.test_password_reset_flow()
     
     # Test downloads management
     tester.test_downloads_management()
+    
+    # Test new features
+    tester.test_notifications_management()
+    tester.test_resources_management()
+    tester.test_wifi_management()
+    
+    # Clean up - delete test student if it exists
+    if tester.test_student:
+        tester.test_delete_student()
     
     # Print results
     total_tests_run = tester.tests_run + image_tests_run
