@@ -11,7 +11,10 @@ import {
   ArrowRightOnRectangleIcon,
   ChartBarIcon,
   KeyIcon,
-  ArrowDownTrayIcon
+  ArrowDownTrayIcon,
+  BellIcon,
+  BookOpenIcon,
+  WifiIcon
 } from '@heroicons/react/24/outline';
 
 import AdminOverview from './AdminOverview';
@@ -21,6 +24,9 @@ import FinanceManagement from './FinanceManagement';
 import CertificateManagement from './CertificateManagement';
 import PasswordResetManagement from './PasswordResetManagement';
 import DownloadsManagement from './DownloadsManagement';
+import NotificationsManagement from './NotificationsManagement';
+import ResourcesManagement from './ResourcesManagement';
+import WiFiManagement from './WiFiManagement';
 
 const AdminDashboard = () => {
   const { user, logout } = useAuth();
@@ -29,7 +35,7 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     const pageName = navigation.find(item => item.current)?.name || 'Admin Dashboard';
-    document.title = `Twoem | ${pageName}`;
+    document.title = `TWOEM | ${pageName}`;
   }, [location.pathname]);
 
   const navigation = [
@@ -40,6 +46,27 @@ const AdminDashboard = () => {
     { name: 'Certificates', href: '/admin/certificates', icon: DocumentIcon, current: location.pathname === '/admin/certificates' },
     { name: 'Password Resets', href: '/admin/password-resets', icon: KeyIcon, current: location.pathname === '/admin/password-resets' },
     { name: 'Downloads', href: '/admin/downloads', icon: ArrowDownTrayIcon, current: location.pathname === '/admin/downloads' },
+    { 
+      name: 'Notifications', 
+      href: '/admin/notifications', 
+      icon: BellIcon, 
+      current: location.pathname === '/admin/notifications',
+      isNew: true 
+    },
+    { 
+      name: 'Resources', 
+      href: '/admin/resources', 
+      icon: BookOpenIcon, 
+      current: location.pathname === '/admin/resources',
+      isNew: true 
+    },
+    { 
+      name: 'WiFi Settings', 
+      href: '/admin/wifi', 
+      icon: WifiIcon, 
+      current: location.pathname === '/admin/wifi',
+      isNew: true 
+    },
   ];
 
   const handleLogout = () => {
@@ -48,7 +75,7 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-50">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 lg:hidden">
@@ -62,16 +89,19 @@ const AdminDashboard = () => {
           <img 
             src="/images/twoem.jpg" 
             alt="TWOEM Logo" 
-            className="h-8 w-8 rounded-full mr-3"
+            className="h-10 w-10 rounded-full mr-3 border-2 border-blue-300"
             onError={(e) => {
-              e.target.src = 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=32&h=32&fit=crop&crop=center';
+              e.target.src = 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=40&h=40&fit=crop&crop=center';
             }}
           />
-          <h2 className="text-white text-lg font-semibold">TWOEM Admin</h2>
+          <div>
+            <h2 className="text-white text-lg font-bold">TWOEM</h2>
+            <p className="text-gray-300 text-xs">Admin Portal</p>
+          </div>
         </div>
 
-        <nav className="mt-8">
-          <div className="px-2 space-y-1">
+        <nav className="mt-4 px-2">
+          <div className="space-y-1">
             {navigation.map((item) => {
               const Icon = item.icon;
               return (
@@ -80,22 +110,27 @@ const AdminDashboard = () => {
                   to={item.href}
                   className={`${
                     item.current
-                      ? 'bg-gray-800 text-white'
+                      ? 'bg-blue-700 text-white shadow-lg'
                       : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-                  } group flex items-center px-2 py-2 text-sm font-medium rounded-md`}
+                  } group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 relative`}
                   onClick={() => setSidebarOpen(false)}
                 >
-                  <Icon className="mr-3 h-5 w-5" />
-                  {item.name}
+                  <Icon className="mr-3 h-5 w-5 flex-shrink-0" />
+                  <span className="flex-1">{item.name}</span>
+                  {item.isNew && (
+                    <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                      New
+                    </span>
+                  )}
                 </Link>
               );
             })}
           </div>
 
-          <div className="px-2 mt-8">
+          <div className="mt-8 pt-4 border-t border-gray-700">
             <button
               onClick={handleLogout}
-              className="text-gray-300 hover:bg-gray-700 hover:text-white group flex items-center px-2 py-2 text-sm font-medium rounded-md w-full"
+              className="text-gray-300 hover:bg-red-600 hover:text-white group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg w-full transition-all duration-200"
             >
               <ArrowRightOnRectangleIcon className="mr-3 h-5 w-5" />
               Logout
@@ -107,9 +142,9 @@ const AdminDashboard = () => {
       {/* Main content */}
       <div className="lg:pl-64 flex flex-col flex-1">
         {/* Top navigation */}
-        <div className="sticky top-0 z-10 flex-shrink-0 flex h-16 bg-white shadow">
+        <div className="sticky top-0 z-10 flex-shrink-0 flex h-16 bg-white shadow-sm border-b border-gray-200">
           <button
-            className="px-4 border-r border-gray-200 text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500 lg:hidden"
+            className="px-4 border-r border-gray-200 text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 lg:hidden hover:bg-gray-50"
             onClick={() => setSidebarOpen(!sidebarOpen)}
           >
             <span className="sr-only">Open sidebar</span>
@@ -119,14 +154,22 @@ const AdminDashboard = () => {
           </button>
 
           <div className="flex-1 px-4 flex justify-between items-center">
-            <h1 className="text-2xl font-semibold text-gray-900">
-              {navigation.find(item => item.current)?.name || 'Admin Dashboard'}
-            </h1>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">
+                {navigation.find(item => item.current)?.name || 'Admin Dashboard'}
+              </h1>
+              <p className="text-sm text-gray-500 mt-1">
+                Manage your student portal
+              </p>
+            </div>
             
             <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-500">Welcome, {user?.username}</span>
-              <div className="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center">
-                <span className="text-sm font-medium text-gray-700">
+              <div className="hidden md:flex items-center space-x-2 bg-gray-50 px-3 py-2 rounded-lg">
+                <span className="text-sm text-gray-600">Welcome,</span>
+                <span className="text-sm font-semibold text-gray-900">{user?.username}</span>
+              </div>
+              <div className="h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
+                <span className="text-sm font-bold text-white">
                   {user?.username?.charAt(0).toUpperCase()}
                 </span>
               </div>
@@ -135,7 +178,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* Page content */}
-        <main className="flex-1 pb-8">
+        <main className="flex-1 pb-8 bg-gray-50">
           <Routes>
             <Route index element={<AdminOverview />} />
             <Route path="students" element={<StudentManagement />} />
@@ -144,6 +187,9 @@ const AdminDashboard = () => {
             <Route path="certificates" element={<CertificateManagement />} />
             <Route path="password-resets" element={<PasswordResetManagement />} />
             <Route path="downloads" element={<DownloadsManagement />} />
+            <Route path="notifications" element={<NotificationsManagement />} />
+            <Route path="resources" element={<ResourcesManagement />} />
+            <Route path="wifi" element={<WiFiManagement />} />
           </Routes>
         </main>
       </div>

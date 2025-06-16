@@ -8,13 +8,18 @@ import {
   CurrencyDollarIcon,
   DocumentIcon,
   ArrowRightOnRectangleIcon,
-  ExclamationTriangleIcon
+  ExclamationTriangleIcon,
+  BellIcon,
+  BookOpenIcon,
+  WifiIcon,
+  ArrowDownTrayIcon
 } from '@heroicons/react/24/outline';
 
 import StudentProfile from './StudentProfile';
 import StudentAcademics from './StudentAcademics';
 import StudentFinance from './StudentFinance';
 import StudentCertificate from './StudentCertificate';
+import StudentResources from './StudentResources';
 
 const StudentDashboard = () => {
   const { user, logout } = useAuth();
@@ -31,6 +36,13 @@ const StudentDashboard = () => {
     { name: 'Academics', href: '/student/academics', icon: AcademicCapIcon, current: location.pathname === '/student/academics' },
     { name: 'Finance', href: '/student/finance', icon: CurrencyDollarIcon, current: location.pathname === '/student/finance' },
     { name: 'Certificate', href: '/student/certificate', icon: DocumentIcon, current: location.pathname === '/student/certificate' },
+    { 
+      name: 'Resources', 
+      href: '/student/resources', 
+      icon: BookOpenIcon, 
+      current: location.pathname === '/student/resources',
+      isNew: true 
+    },
   ];
 
   const handleLogout = () => {
@@ -39,7 +51,7 @@ const StudentDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-50">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 lg:hidden">
@@ -53,16 +65,19 @@ const StudentDashboard = () => {
           <img 
             src="/images/twoem.jpg" 
             alt="TWOEM Logo" 
-            className="h-8 w-8 rounded-full mr-3"
+            className="h-10 w-10 rounded-full mr-3 border-2 border-blue-300"
             onError={(e) => {
-              e.target.src = 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=32&h=32&fit=crop&crop=center';
+              e.target.src = 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=40&h=40&fit=crop&crop=center';
             }}
           />
-          <h2 className="text-white text-lg font-semibold">TWOEM Student</h2>
+          <div>
+            <h2 className="text-white text-lg font-bold">TWOEM</h2>
+            <p className="text-blue-200 text-xs">Student Portal</p>
+          </div>
         </div>
 
-        <nav className="mt-8">
-          <div className="px-2 space-y-1">
+        <nav className="mt-4 px-2">
+          <div className="space-y-1">
             {navigation.map((item) => {
               const Icon = item.icon;
               return (
@@ -71,22 +86,27 @@ const StudentDashboard = () => {
                   to={item.href}
                   className={`${
                     item.current
-                      ? 'bg-blue-800 text-white'
+                      ? 'bg-blue-700 text-white shadow-lg'
                       : 'text-blue-100 hover:bg-blue-700 hover:text-white'
-                  } group flex items-center px-2 py-2 text-sm font-medium rounded-md`}
+                  } group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 relative`}
                   onClick={() => setSidebarOpen(false)}
                 >
-                  <Icon className="mr-3 h-5 w-5" />
-                  {item.name}
+                  <Icon className="mr-3 h-5 w-5 flex-shrink-0" />
+                  <span className="flex-1">{item.name}</span>
+                  {item.isNew && (
+                    <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                      New
+                    </span>
+                  )}
                 </Link>
               );
             })}
           </div>
 
-          <div className="px-2 mt-8">
+          <div className="mt-8 pt-4 border-t border-blue-700">
             <button
               onClick={handleLogout}
-              className="text-blue-100 hover:bg-blue-700 hover:text-white group flex items-center px-2 py-2 text-sm font-medium rounded-md w-full"
+              className="text-blue-100 hover:bg-red-600 hover:text-white group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg w-full transition-all duration-200"
             >
               <ArrowRightOnRectangleIcon className="mr-3 h-5 w-5" />
               Logout
@@ -98,9 +118,9 @@ const StudentDashboard = () => {
       {/* Main content */}
       <div className="lg:pl-64 flex flex-col flex-1">
         {/* Top navigation */}
-        <div className="sticky top-0 z-10 flex-shrink-0 flex h-16 bg-white shadow">
+        <div className="sticky top-0 z-10 flex-shrink-0 flex h-16 bg-white shadow-sm border-b border-gray-200">
           <button
-            className="px-4 border-r border-gray-200 text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 lg:hidden"
+            className="px-4 border-r border-gray-200 text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 lg:hidden hover:bg-gray-50"
             onClick={() => setSidebarOpen(!sidebarOpen)}
           >
             <span className="sr-only">Open sidebar</span>
@@ -110,14 +130,22 @@ const StudentDashboard = () => {
           </button>
 
           <div className="flex-1 px-4 flex justify-between items-center">
-            <h1 className="text-2xl font-semibold text-gray-900">
-              {navigation.find(item => item.current)?.name || 'Student Portal'}
-            </h1>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">
+                {navigation.find(item => item.current)?.name || 'Student Portal'}
+              </h1>
+              <p className="text-sm text-gray-500 mt-1">
+                Welcome to your learning dashboard
+              </p>
+            </div>
             
             <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-500">Welcome, {user?.username}</span>
-              <div className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center">
-                <span className="text-sm font-medium text-white">
+              <div className="hidden md:flex items-center space-x-2 bg-blue-50 px-3 py-2 rounded-lg">
+                <span className="text-sm text-blue-600">Welcome,</span>
+                <span className="text-sm font-semibold text-blue-900">{user?.username}</span>
+              </div>
+              <div className="h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg">
+                <span className="text-sm font-bold text-white">
                   {user?.username?.charAt(0).toUpperCase()}
                 </span>
               </div>
@@ -127,7 +155,7 @@ const StudentDashboard = () => {
 
         {/* First Login Warning */}
         {user?.is_first_login && (
-          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mx-4 mt-4 rounded-r-lg">
             <div className="flex">
               <div className="flex-shrink-0">
                 <ExclamationTriangleIcon className="h-5 w-5 text-yellow-400" />
@@ -142,12 +170,13 @@ const StudentDashboard = () => {
         )}
 
         {/* Page content */}
-        <main className="flex-1 pb-8">
+        <main className="flex-1 pb-8 bg-gray-50">
           <Routes>
             <Route index element={<StudentProfile />} />
             <Route path="academics" element={<StudentAcademics />} />
             <Route path="finance" element={<StudentFinance />} />
             <Route path="certificate" element={<StudentCertificate />} />
+            <Route path="resources" element={<StudentResources />} />
           </Routes>
         </main>
       </div>
