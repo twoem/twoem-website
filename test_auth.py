@@ -21,7 +21,7 @@ async def test_auth():
         await page.wait_for_load_state('networkidle')
         
         # Take screenshot of login page
-        await page.screenshot(path='login_page.png', quality=40, full_page=False)
+        await page.screenshot(path='login_page.png', full_page=False)
         print("Login page loaded successfully")
         
         # Test admin login
