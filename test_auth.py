@@ -195,7 +195,7 @@ async def test_auth():
         
         if home_url == 'http://localhost:3000/':
             print("✅ Back to website button works correctly")
-            await page.screenshot(path='home_page.png', quality=40, full_page=False)
+            await page.screenshot(path='home_page.png', full_page=False)
         else:
             print("❌ Back to website button not working")
         
