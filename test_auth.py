@@ -63,7 +63,7 @@ async def test_auth():
             print(f"URL after password change: {dashboard_url}")
             
             # Take screenshot of dashboard
-            await page.screenshot(path='admin_dashboard.png', quality=40, full_page=False)
+            await page.screenshot(path='admin_dashboard.png', full_page=False)
             
             if '/admin' in dashboard_url:
                 print("✅ Successfully redirected to admin dashboard after password change")
