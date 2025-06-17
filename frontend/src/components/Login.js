@@ -35,7 +35,9 @@ const Login = () => {
       const userData = await login(username, password);
       
       if (userData.is_first_login) {
-        return <Navigate to="/change-password" />;
+        // Redirect to change password page for first login
+        window.location.href = '/change-password';
+        return;
       }
       
       // Redirect based on role
