@@ -1250,10 +1250,10 @@ async def create_default_admin():
             email="admin@twoem.com",
             role="admin",
             hashed_password=hash_password("Twoemweb@2020"),
-            is_first_login=False
+            is_first_login=True  # Force password change on first login for security
         )
         await db.users.insert_one(admin_user.dict())
-        logger.info("Default admin user created: username=admin, password=Twoemweb@2020")
+        logger.info("Default admin user created: username=admin, password=Twoemweb@2020 (Password change required on first login)")
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
