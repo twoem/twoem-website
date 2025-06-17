@@ -71,7 +71,7 @@ async def test_auth():
                 print("❌ Failed to redirect to admin dashboard after password change")
         elif '/admin' in current_url:
             print("⚠️ Already redirected to admin dashboard - is_first_login might be false")
-            await page.screenshot(path='admin_dashboard_direct.png', quality=40, full_page=False)
+            await page.screenshot(path='admin_dashboard_direct.png', full_page=False)
         else:
             print("❌ Failed to redirect to change password page or admin dashboard")
             
