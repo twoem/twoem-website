@@ -12,6 +12,7 @@ export const useAuth = () => {
 };
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+console.log('BACKEND_URL:', BACKEND_URL);
 const API_BASE = `${BACKEND_URL}/api`;
 
 export const AuthProvider = ({ children }) => {
