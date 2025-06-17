@@ -743,14 +743,40 @@ def main():
     print(f"Testing TWOEM Online Productions API at: {backend_url}")
     tester = TwoemAPITester(backend_url)
     
-    # Test image availability
-    image_tests_passed, image_tests_run = test_image_availability(backend_url)
+    # Test health check
+    success, response = tester.run_test(
+        "Health Check",
+        "GET",
+        "health",
+        200
+    )
+    if success:
+        print(f"Health check response: {response}")
     
     # Test admin login
     if not tester.test_admin_login():
         print("❌ Admin login failed, stopping tests")
         return 1
-        
+    
+    # Test user info endpoint
+    success, response = tester.run_test(
+        "Get User Info",
+        "GET",
+        "auth/me",
+        200,
+        token=tester.admin_token
+    )
+    if success:
+        print(f"User info: {json.dumps(response, indent=2)}")
+        # Check if is_first_login is true
+        if response.get('is_first_login') == True:
+            print("✅ Verified is_first_login is True")
+        else:
+            print("❌ is_first_login is not True")
+    
+    # Test image availability
+    image_tests_passed, image_tests_run = test_image_availability(backend_url)
+    
     # Test student management
     if not tester.test_create_student():
         print("❌ Student creation failed")
