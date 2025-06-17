@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "User was trying to host their TWOEM website on render.com but got a Node.js version compatibility error. The error showed that react-router-dom@7.5.1 requires Node.js >=20.0.0 but the Docker image was using Node.js 18.20.8."
+user_problem_statement: "User had login failed error on their TWOEM website and MongoDB deployment issues on render.com. The errors were: 1) Login Failed message in frontend, 2) ServerSelectionTimeoutError: localhost:27017 Connection refused on render.com deployment - indicating MongoDB connection issues."
 
 backend:
   - task: "Node.js Docker compatibility fix"
