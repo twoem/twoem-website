@@ -40,7 +40,7 @@ async def test_auth():
         print(f"Current URL after login: {current_url}")
         
         # Take screenshot after login
-        await page.screenshot(path='after_login.png', quality=40, full_page=False)
+        await page.screenshot(path='after_login.png', full_page=False)
         
         # Check if we're on the change password page
         if '/change-password' in current_url:
