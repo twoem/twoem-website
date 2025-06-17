@@ -1,7 +1,7 @@
 # Multi-stage Dockerfile for TWOEM Website
 
 # Frontend Build Stage
-FROM node:18-alpine as frontend-build
+FROM node:20-alpine as frontend-build
 WORKDIR /app/frontend
 COPY frontend/package*.json frontend/yarn.lock ./
 RUN yarn install --frozen-lockfile
