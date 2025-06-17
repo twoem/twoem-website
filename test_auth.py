@@ -152,7 +152,7 @@ async def test_auth():
         
         if error_visible and error_text:
             print("✅ Error message for invalid credentials displayed correctly")
-            await page.screenshot(path='invalid_credentials_error.png', quality=40, full_page=False)
+            await page.screenshot(path='invalid_credentials_error.png', full_page=False)
         else:
             print("❌ Error message for invalid credentials not displayed")
         
