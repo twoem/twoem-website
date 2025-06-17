@@ -11,8 +11,12 @@ export const useAuth = () => {
   return context;
 };
 
-const BACKEND_URL = 'http://localhost:8001';
-console.log('BACKEND_URL (hardcoded):', BACKEND_URL);
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+console.log('BACKEND_URL:', BACKEND_URL);
+console.log('Environment variables:', {
+  REACT_APP_BACKEND_URL: process.env.REACT_APP_BACKEND_URL,
+  NODE_ENV: process.env.NODE_ENV
+});
 const API_BASE = `${BACKEND_URL}/api`;
 
 export const AuthProvider = ({ children }) => {
