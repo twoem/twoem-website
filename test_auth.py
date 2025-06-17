@@ -166,7 +166,7 @@ async def test_auth():
         
         if forgot_password_form_visible:
             print("✅ Forgot Password form displayed correctly")
-            await page.screenshot(path='forgot_password_form.png', quality=40, full_page=False)
+            await page.screenshot(path='forgot_password_form.png', full_page=False)
             
             # Test back to login button
             await page.click('button:has-text("← Back to login")')
