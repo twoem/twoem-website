@@ -244,7 +244,7 @@ async def test_auth():
             
             if '/admin/students' in students_url:
                 print("✅ Protected route access working correctly")
-                await page.screenshot(path='students_page.png', quality=40, full_page=False)
+                await page.screenshot(path='students_page.png', full_page=False)
             else:
                 print("❌ Protected route access not working")
             
