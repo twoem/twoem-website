@@ -116,6 +116,54 @@ backend:
       - working: true
         agent: "main"
         comment: "Updated Dockerfile to use node:20-alpine instead of node:18-alpine to resolve react-router-dom compatibility issue"
+  
+  - task: "Backend Health Check"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Need to test the /api/health endpoint to confirm the backend is running"
+  
+  - task: "Admin Login Authentication"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Need to test admin login with username 'admin' and password 'Twoemweb@2020'"
+  
+  - task: "User Info Endpoint"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Need to test the /api/auth/me endpoint with the received token after successful login"
+  
+  - task: "First Login Check"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Need to verify that the admin user has is_first_login: true indicating password change is required"
 
 frontend:
   - task: "Node.js version requirement update"
