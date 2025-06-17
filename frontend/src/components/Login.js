@@ -31,6 +31,9 @@ const Login = () => {
     setLoading(true);
     setError('');
 
+    console.log('Login attempt with:', { username, password });
+    console.log('Backend URL:', process.env.REACT_APP_BACKEND_URL);
+
     try {
       const userData = await login(username, password);
       
@@ -43,6 +46,7 @@ const Login = () => {
       // Redirect based on role
       window.location.href = userData.role === 'admin' ? '/admin' : '/student';
     } catch (error) {
+      console.error('Login error:', error);
       setError(error.response?.data?.detail || 'Login failed');
     } finally {
       setLoading(false);
