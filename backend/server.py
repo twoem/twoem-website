@@ -1254,6 +1254,13 @@ async def create_default_admin():
         )
         await db.users.insert_one(admin_user.dict())
         logger.info("Default admin user created: username=admin, password=Twoemweb@2020 (Password change required on first login)")
+    else:
+        # Ensure admin user has is_first_login set to True for testing
+        await db.users.update_one(
+            {"role": "admin"},
+            {"$set": {"is_first_login": True}}
+        )
+        logger.info("Existing admin user updated: is_first_login set to True for testing")
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
