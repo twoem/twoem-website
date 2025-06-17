@@ -738,7 +738,7 @@ def test_image_availability(base_url):
 
 def main():
     # Get the backend URL from environment variable
-    backend_url = os.environ.get("REACT_APP_BACKEND_URL", "https://f2896747-4d7a-4ace-98b1-78cb3434b085.preview.emergentagent.com")
+    backend_url = os.environ.get("REACT_APP_BACKEND_URL", "https://e8faf595-6aff-4992-b981-85b34777e8f1.preview.emergentagent.com")
     
     print(f"Testing TWOEM Online Productions API at: {backend_url}")
     tester = TwoemAPITester(backend_url)
