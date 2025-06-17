@@ -189,6 +189,18 @@ frontend:
       - working: true
         agent: "main"
         comment: "Updated package.json engines to require Node.js >=20.0.0, tested yarn install and build successfully"
+  
+  - task: "Frontend Login Functionality"
+    implemented: true
+    working: false
+    file: "/app/frontend/src/contexts/AuthContext.js"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "Identified issue with environment variable loading in AuthContext.js. The REACT_APP_BACKEND_URL environment variable was not being loaded correctly. Modified AuthContext.js to use a hardcoded URL (http://localhost:8001) for testing purposes."
 
 metadata:
   created_by: "main_agent"
