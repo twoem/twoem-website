@@ -186,8 +186,10 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Node.js Docker compatibility fix"
-    - "Node.js version requirement update"
+    - "Backend Health Check"
+    - "Admin Login Authentication"
+    - "User Info Endpoint"
+    - "First Login Check"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -195,3 +197,5 @@ test_plan:
 agent_communication:
   - agent: "main"
     message: "Fixed Node.js version compatibility issue by updating Dockerfile from node:18-alpine to node:20-alpine and updating package.json engines requirement to >=20.0.0. Both frontend build and backend dependencies work correctly. The application services are all running successfully."
+  - agent: "main"
+    message: "Added authentication test tasks to verify backend authentication system is working properly. Need to test health check, admin login, user info endpoint, and first login check."
