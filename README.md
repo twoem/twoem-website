@@ -53,7 +53,7 @@ A comprehensive web-based student management system built with FastAPI, React, a
 
 ### Prerequisites
 - Python 3.11+
-- Node.js 18+
+- Node.js 20+
 - MongoDB
 - Yarn package manager
 
